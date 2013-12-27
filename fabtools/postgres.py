@@ -5,9 +5,10 @@ PostgreSQL users and databases
 This module provides tools for creating PostgreSQL users and databases.
 
 """
-import os
 
 from __future__ import with_statement
+
+import os
 
 from fabric.api import cd, hide, run, settings
 

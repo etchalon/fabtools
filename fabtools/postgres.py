@@ -64,7 +64,7 @@ def create_user(name, password, superuser=False, createdb=False,
     _run_as_pg('''psql -c "CREATE USER %(name)s %(options)s;"''' % locals(), cwd=cwd)
 
 
-def drop_user(name, psql_cwd='~postgres'):
+def drop_user(name, cwd='~postgres'):
     """
     Drop a PostgreSQL user.
 
@@ -77,7 +77,7 @@ def drop_user(name, psql_cwd='~postgres'):
             fabtools.postgres.drop_user('dbuser')
 
     """
-    _run_as_pg('''psql -c "DROP USER %(name)s;"''' % locals())
+    _run_as_pg('''psql -c "DROP USER %(name)s;"''' % locals(), cwd=cwd)
 
 
 def database_exists(name, cwd='~postgres'):
@@ -105,7 +105,7 @@ def create_database(name, owner, template='template0', encoding='UTF8',
     """
     _run_as_pg('''createdb --owner %(owner)s --template %(template)s \
                   --encoding=%(encoding)s --lc-ctype=%(locale)s \
-                  --lc-collate=%(locale)s %(name)s''' % locals(), cwd=psql_cwd)
+                  --lc-collate=%(locale)s %(name)s''' % locals(), cwd=cwd)
 
 
 def drop_database(name, cwd='~postgres'):

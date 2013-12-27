@@ -5,6 +5,8 @@ PostgreSQL users and databases
 This module provides tools for creating PostgreSQL users and databases.
 
 """
+import os
+
 from __future__ import with_statement
 
 from fabric.api import cd, hide, run, settings
@@ -14,7 +16,7 @@ def _run_as_pg(command):
     """
     Run command as 'postgres' user
     """
-    with cd('~postgres'):
+    with cd(os.path.expanduser('~postgres')):
         return run('sudo -u postgres %s' % command)
 
 

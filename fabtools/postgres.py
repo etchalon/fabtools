@@ -108,7 +108,7 @@ def create_database(name, owner, template='template0', encoding='UTF8',
                   --lc-collate=%(locale)s %(name)s''' % locals(), cwd=psql_cwd)
 
 
-def drop_database(name):
+def drop_database(name, cwd='~postgres'):
     """
     Delete a PostgreSQL database.
 

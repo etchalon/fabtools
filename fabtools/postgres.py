@@ -7,31 +7,32 @@ This module provides tools for creating PostgreSQL users and databases.
 """
 from __future__ import with_statement
 
-import os
-
 from fabric.api import cd, hide, run, settings
 
 
-def _run_as_pg(command):
+def _run_as_pg(command, cwd='~postgres'):
     """
     Run command as 'postgres' user
     """
-    with cd(os.path.expanduser('~postgres')):
-        return run('sudo -u postgres %s' % command)
+    if cwd:
+        with cd(cwd):
+            return run('sudo -u postgres %s' % command)
+    else:
+        return run('sudo -u postgres %s' % command)        
 
 
-def user_exists(name):
+def user_exists(name, cwd='~postgres'):
     """
     Check if a PostgreSQL user exists.
     """
     with settings(hide('running', 'stdout', 'stderr', 'warnings'), warn_only=True):
-        res = _run_as_pg('''psql -t -A -c "SELECT COUNT(*) FROM pg_user WHERE usename = '%(name)s';"''' % locals())
+        res = _run_as_pg('''psql -t -A -c "SELECT COUNT(*) FROM pg_user WHERE usename = '%(name)s';"''' % locals(), cwd=cwd)
     return (res == "1")
 
 
 def create_user(name, password, superuser=False, createdb=False,
                 createrole=False, inherit=True, login=True,
-                connection_limit=None, encrypted_password=False):
+                connection_limit=None, encrypted_password=False, cwd='~postgres'):
     """
     Create a PostgreSQL user.
 
@@ -60,10 +61,10 @@ def create_user(name, password, superuser=False, createdb=False,
     password_type = 'ENCRYPTED' if encrypted_password else 'UNENCRYPTED'
     options.append("%s PASSWORD '%s'" % (password_type, password))
     options = ' '.join(options)
-    _run_as_pg('''psql -c "CREATE USER %(name)s %(options)s;"''' % locals())
+    _run_as_pg('''psql -c "CREATE USER %(name)s %(options)s;"''' % locals(), cwd=cwd)
 
 
-def drop_user(name):
+def drop_user(name, psql_cwd='~postgres'):
     """
     Drop a PostgreSQL user.
 
@@ -79,7 +80,7 @@ def drop_user(name):
     _run_as_pg('''psql -c "DROP USER %(name)s;"''' % locals())
 
 
-def database_exists(name):
+def database_exists(name, cwd='~postgres'):
     """
     Check if a PostgreSQL database exists.
     """
@@ -89,7 +90,7 @@ def database_exists(name):
 
 
 def create_database(name, owner, template='template0', encoding='UTF8',
-                    locale='en_US.UTF-8'):
+                    locale='en_US.UTF-8', cwd='~postgres'):
     """
     Create a PostgreSQL database.
 
@@ -104,7 +105,7 @@ def create_database(name, owner, template='template0', encoding='UTF8',
     """
     _run_as_pg('''createdb --owner %(owner)s --template %(template)s \
                   --encoding=%(encoding)s --lc-ctype=%(locale)s \
-                  --lc-collate=%(locale)s %(name)s''' % locals())
+                  --lc-collate=%(locale)s %(name)s''' % locals(), cwd=psql_cwd)
 
 
 def drop_database(name):
@@ -120,7 +121,7 @@ def drop_database(name):
             fabtools.postgres.drop_database('myapp')
 
     """
-    _run_as_pg('''dropdb %(name)s''' % locals())
+    _run_as_pg('''dropdb %(name)s''' % locals(), cwd='~postgres')
 
 
 def create_schema(name, database, owner=None):
@@ -130,4 +131,4 @@ def create_schema(name, database, owner=None):
     if owner:
         _run_as_pg('''psql %(database)s -c "CREATE SCHEMA %(name)s AUTHORIZATION %(owner)s"''' % locals())
     else:
-        _run_as_pg('''psql %(database)s -c "CREATE SCHEMA %(name)s"''' % locals())
+        _run_as_pg('''psql %(database)s -c "CREATE SCHEMA %(name)s"''' % locals(), cwd=cwd)
